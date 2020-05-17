@@ -34,26 +34,18 @@ namespace scout
         static void GetProcesses()
         {
             PrintSectionHeader("PROCESSES");
-            try
+            var processes = Process.GetProcesses(Helpers.COMPUTERNAME);
+            Console.WriteLine("PID\t\tName");
+            foreach (Process process in processes)
             {
-                var processes = Process.GetProcesses(Helpers.COMPUTERNAME);
-                Console.WriteLine("PID\t\tName");
-                foreach (Process process in processes)
+                if (Helpers.DefensiveProcesses.ContainsKey(process.ProcessName.ToLower()))
                 {
-                    if (Helpers.DefensiveProcesses.ContainsKey(process.ProcessName.ToLower()))
-                    {
-                        Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [DEFENSIVE PROCESS]");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{process.Id}\t\t{process.ProcessName}");
-                    }
+                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [DEFENSIVE PROCESS]");
                 }
-                
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[!] Error: {e}");
+                else
+                {
+                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName}");
+                }
             }
             PrintSectionFooter();
         }
@@ -201,12 +193,19 @@ namespace scout
             }
             Helpers.COMPUTERNAME = args[0];
             Console.WriteLine($"[i] Running Scout against {Helpers.COMPUTERNAME}..");
-            GetProcesses();
-            GetServices();
-            GetPowerShellInformation();
-            GetDotNetVersions();
-            ListAuditSettings();
-            ListWEFSettings();
+            try
+            {
+                GetProcesses();
+                GetServices();
+                GetPowerShellInformation();
+                GetDotNetVersions();
+                ListAuditSettings();
+                ListWEFSettings();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[!] Error running Scout:\n\n{e}");
+            }
 
         }
     }
