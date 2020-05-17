@@ -2,13 +2,18 @@ alias scout {
     local('$computer $netversion $assembly');
     $computer = $2;
     $netversion = $3;
-    $assembly = "./dist/scout_net35.exe";
-
-    if ($netversion == "net45")
+    $assembly = script_resource("../dist/scout_net35.exe");
+    if ($netversion eq "net45")
     {
-        $assembly = "./dist/scout_net45.exe";
+        $assembly = script_resource("../dist/scout_net45.exe");
     }
-
-    btask($1, "Tasked beacon to run Scout against " . $computer, "T1012, T1007, T1057, T1063");
-    bexecute($1, $assembly, $computer);
+    if ($computer)
+    {
+        btask($1, "Tasked beacon to run Scout against " . $computer, "T1012, T1007, T1057, T1063");
+        bexecute_assembly($1, $assembly, $computer);
+    }
+    else
+    {
+        berror($1, "Usage: scout <COMPUTERNAME|IPADDRESS>");
+    }
 }
