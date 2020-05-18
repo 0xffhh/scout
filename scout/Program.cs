@@ -23,7 +23,7 @@ namespace scout
 
         static void PrintItemHeader(string title)
         {
-            Console.WriteLine($"\n[-------- {title} --------]");
+            Console.WriteLine($"\n|-------- {title} --------|");
         }
 
         static void PrintItemValue(string title, object value)
@@ -36,11 +36,11 @@ namespace scout
             PrintSectionHeader("PROCESSES");
             var processes = Process.GetProcesses(Helpers.COMPUTERNAME);
             Console.WriteLine("PID\t\tName");
-            foreach (Process process in processes)
+            foreach (Process process in processes.OrderBy(p=>p.ProcessName))
             {
-                if (Helpers.DefensiveProcesses.ContainsKey(process.ProcessName.ToLower()))
+                if (Helpers.InterestingProcesses.ContainsKey(process.ProcessName))
                 {
-                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [DEFENSIVE PROCESS]");
+                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [{Helpers.InterestingProcesses[process.ProcessName]}]");
                 }
                 else
                 {
@@ -167,7 +167,7 @@ namespace scout
             {
                 if (!String.IsNullOrEmpty(version))
                 {
-                    Console.WriteLine($" {version}");
+                    Console.WriteLine($"{version}");
                 }
             }
             PrintSectionFooter();
@@ -176,11 +176,31 @@ namespace scout
         static public void GetServices()
         {
             PrintSectionHeader("Services");
+            var runningServices = new List<ServiceController>();
+            var otherServices = new List<ServiceController>();
             var services = ServiceController.GetServices(Helpers.COMPUTERNAME);
-            foreach (ServiceController service in services)
+            foreach (ServiceController service in services.OrderBy(s => s.ServiceName))
             {
-                PrintItemValue(service.DisplayName, service.Status);
+                if (service.Status == ServiceControllerStatus.Running)
+                {
+                    runningServices.Add(service);
+                }
+                else
+                {
+                    otherServices.Add(service);
+                }
             }
+            PrintItemHeader("Running Services");
+            foreach (ServiceController service in runningServices)
+            {
+                PrintItemValue(service.ServiceName, service.DisplayName);
+            }
+            PrintItemHeader("Other Services");
+            foreach (ServiceController service in otherServices)
+            {
+                PrintItemValue(service.ServiceName, $"{service.DisplayName} ({service.Status})");
+            }
+
             PrintSectionFooter();
         }
 
