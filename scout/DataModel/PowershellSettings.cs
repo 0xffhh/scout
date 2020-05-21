@@ -14,5 +14,12 @@ namespace scout.DataModel
         public Dictionary<string, string> ModuleLoggingSettings { get; set; }
         public Dictionary<string, string> ScriptblockLoggingSettings { get; set; }
 
+        public PowershellSettings()
+        {
+            TranscriptionSettings = new Dictionary<string, string>();
+            ModuleLoggingSettings = new Dictionary<string, string>();
+            ScriptblockLoggingSettings = new Dictionary<string, string>();
+        }
+
     }
 }
