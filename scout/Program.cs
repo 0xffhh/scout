@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using scout.DataModel;
+using scout.DataModel.AuditPol;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,22 +21,22 @@ namespace scout
 
         static void PrintSectionHeader(string header)
         {
-            Console.WriteLine($"[======== {header.ToUpper()} ========]");
+            //Console.WriteLine($"[======== {header.ToUpper()} ========]");
         }
 
         static void PrintSectionFooter()
         {
-            Console.WriteLine($"\n");
+            //Console.WriteLine($"\n");
         }
 
         static void PrintItemHeader(string title)
         {
-            Console.WriteLine($"\n|-------- {title} --------|");
+            //Console.WriteLine($"\n|-------- {title} --------|");
         }
 
         static void PrintItemValue(string title, object value)
         {
-            Console.WriteLine($"{title}: {value}");
+            //Console.WriteLine($"{title}: {value}");
         }
 
         static string GetJson()
@@ -47,18 +48,18 @@ namespace scout
         {
             PrintSectionHeader("PROCESSES");
             var processes = Process.GetProcesses(Helpers.COMPUTERNAME);
-            Console.WriteLine("PID\t\tName");
+            //Console.WriteLine("PID\t\tName");
             foreach (Process process in processes.OrderBy(p => p.ProcessName))
             {
                 if (Helpers.InterestingProcesses.ContainsKey(process.ProcessName))
                 {
                     allSettings.processes.Add(new DataModel.ProcessModel(process.Id, process.ProcessName, Helpers.InterestingProcesses[process.ProcessName].ToString()));
-                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [{Helpers.InterestingProcesses[process.ProcessName]}]");
+                    //Console.WriteLine($"{process.Id}\t\t{process.ProcessName} [{Helpers.InterestingProcesses[process.ProcessName]}]");
                 }
                 else
                 {
                     allSettings.processes.Add(new DataModel.ProcessModel(process.Id, process.ProcessName));
-                    Console.WriteLine($"{process.Id}\t\t{process.ProcessName}");
+                    //Console.WriteLine($"{process.Id}\t\t{process.ProcessName}");
                 }
             }
             PrintSectionFooter();
@@ -66,29 +67,45 @@ namespace scout
 
         public static void ListAuditSettings()
         {
-            PrintSectionHeader("Audit Settings");
-            Dictionary<string, object> settings = Helpers.GetRegValues("HKLM", "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit");
-            if ((settings != null) && (settings.Count != 0))
+            AuditPolicy ap = new AuditPolicy();
+
+            var categories = AuditPolicyFetcher.GetCategoryIdentifiers();
+            categories.ForEach(x => ap.AddCategory(x, AuditPolicyFetcher.GetCategoryDisplayName(x)));
+
+            //For each category, get the subcategories , lookup subcategory display name and add these pairs to the category
+            ap.Categories.ForEach(c =>
             {
-                foreach (KeyValuePair<string, object> kvp in settings)
+                var subCategories = AuditPolicyFetcher.GetSubCategoryIdentifiers(c.Identifier);
+                subCategories.ForEach(sc =>
                 {
-                    if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
-                    {
-                        string result = string.Join(",", (string[])kvp.Value);
-                        
-                        PrintItemValue(kvp.Key, result);
-                    }
-                    else
-                    {
-                        PrintItemValue(kvp.Key, kvp.Value);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("No Audit Settings Found");
-            }
-            PrintSectionFooter();
+                    c.AddSubCategory(sc, AuditPolicyFetcher.GetSubCategoryDisplayName(sc), AuditPolicyFetcher.GetSystemPolicy(sc));
+                });
+            });
+
+            allSettings.auditSettings = ap;
+            //PrintSectionHeader("Audit Settings");
+            //Dictionary<string, object> settings = Helpers.GetRegValues("HKLM", "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit");
+            //if ((settings != null) && (settings.Count != 0))
+            //{
+            //    foreach (KeyValuePair<string, object> kvp in settings)
+            //    {
+            //        if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
+            //        {
+            //            string result = string.Join(",", (string[])kvp.Value);
+
+            //            PrintItemValue(kvp.Key, result);
+            //        }
+            //        else
+            //        {
+            //            PrintItemValue(kvp.Key, kvp.Value);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    //Console.WriteLine("No Audit Settings Found");
+            //}
+            //PrintSectionFooter();
         }
 
         public static void ListWEFSettings()
@@ -114,7 +131,7 @@ namespace scout
             }
             else
             {
-                Console.WriteLine("No WEF Settings Found");
+                //Console.WriteLine("No WEF Settings Found");
             }
             PrintSectionFooter();
         }
@@ -142,7 +159,7 @@ namespace scout
             }
             else
             {
-                Console.WriteLine("No Transcription Settings Found.");
+                //Console.WriteLine("No Transcription Settings Found.");
             }
 
             Dictionary<string, object> moduleLoggingSettings = Helpers.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
@@ -157,7 +174,7 @@ namespace scout
             }
             else
             {
-                Console.WriteLine("No Module Logging Settings Found.");
+                //Console.WriteLine("No Module Logging Settings Found.");
             }
 
             Dictionary<string, object> scriptBlockSettings = Helpers.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
@@ -172,7 +189,7 @@ namespace scout
             }
             else
             {
-                Console.WriteLine("No Script Block Settings Found.");
+                //Console.WriteLine("No Script Block Settings Found.");
             }
             PrintSectionFooter();
         }
@@ -193,7 +210,7 @@ namespace scout
             {
                 if (!String.IsNullOrEmpty(version))
                 {
-                    Console.WriteLine($"{version}");
+                    //Console.WriteLine($"{version}");
                 }
             }
             PrintSectionFooter();
@@ -233,14 +250,20 @@ namespace scout
 
         static void Main(string[] args)
         {
+            
+
+
             if (args == null || args.Length != 1)
             {
-                Console.WriteLine("[!] Usage: scout.exe <COMPUTERNAME|IPADDRESS>");
-                Environment.Exit(1);
+                Helpers.COMPUTERNAME = Environment.MachineName;
             }
-            Helpers.COMPUTERNAME = args[0];
+            else
+            {
+                Helpers.COMPUTERNAME = args[0];
+            }
             Console.WriteLine($"[i] Running Scout against {Helpers.COMPUTERNAME}..");
             allSettings = new AllSettings();
+            
             try
             {
                 GetProcesses();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using scout.DataModel.AuditPol;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ namespace scout.DataModel
 {
     class AllSettings
     {
-        public Dictionary<string, string> auditSettings { get; private set; }
+        public AuditPolicy auditSettings { get; set; }
 
         public DotNetVersions dotNetVersions { get; private set; }
 
@@ -21,7 +22,7 @@ namespace scout.DataModel
 
         public AllSettings()
         {
-            auditSettings = new Dictionary<string, string>();
+            auditSettings = new AuditPolicy();
             dotNetVersions = new DotNetVersions();
             powershellSettings = new PowershellSettings();
             processes = new List<ProcessModel>();

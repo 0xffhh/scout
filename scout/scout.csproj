@@ -47,7 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditPolicyFetcher.cs" />
     <Compile Include="DataModel\AllSettings.cs" />
+    <Compile Include="DataModel\AuditPol\AuditPolicy.cs" />
     <Compile Include="DataModel\DotNetVersions.cs" />
     <Compile Include="DataModel\PowershellSettings.cs" />
     <Compile Include="DataModel\ProcessModel.cs" />
