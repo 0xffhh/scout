@@ -229,7 +229,7 @@ static public class AuditPolicyFetcher
         if (buffer == IntPtr.Zero)
         {
             //happens when application is not run as admin.
-            throw new UnauthorizedAccessException("Audit settings can only be retried with admin privileges");
+            throw new UnauthorizedAccessException("Audit settings can only be retrieved with admin privileges");
         }
         policyInformation = (AUDIT_POLICY_INFORMATION)Marshal.PtrToStructure(buffer, typeof(AUDIT_POLICY_INFORMATION));
         AuditFree(buffer);
