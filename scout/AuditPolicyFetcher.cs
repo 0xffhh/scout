@@ -94,12 +94,15 @@ static public class AuditPolicyFetcher
         IntPtr buffer;
         uint categoryCount;
         bool success = AuditEnumerateCategories(out buffer, out categoryCount);
-        if (!success) { throw new Win32Exception(Marshal.GetLastWin32Error()); }
-        for (int i = 0, elemOffs = (int)buffer; i < categoryCount; i++)
+        if (!success) 
+        { 
+            throw new Win32Exception(Marshal.GetLastWin32Error()); 
+        }
+        long guidSize = (long)Marshal.SizeOf(typeof(Guid));
+        for (int i = 0; i < categoryCount; i++)
         {
-            Guid guid = (Guid)Marshal.PtrToStructure((IntPtr)elemOffs, typeof(Guid));
+            Guid guid = (Guid)Marshal.PtrToStructure(new IntPtr(buffer.ToInt64() + i*guidSize), typeof(Guid));
             identifiers.Add(guid);
-            elemOffs += Marshal.SizeOf(typeof(Guid));
         }
         AuditFree(buffer);
         return identifiers;
