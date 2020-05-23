@@ -160,11 +160,11 @@ static public class AuditPolicyFetcher
         uint subCategoryCount;
         bool success = AuditEnumerateSubCategories(ref categoryGuid, false, out buffer, out subCategoryCount);
         if (!success) { throw new Win32Exception(Marshal.GetLastWin32Error()); }
-        for (int i = 0, elemOffs = (int)buffer; i < subCategoryCount; i++)
+        long sizeGuid = (long)Marshal.SizeOf(typeof(Guid));
+        for (int i = 0; i < subCategoryCount; i++)
         {
-            Guid guid = (Guid)Marshal.PtrToStructure((IntPtr)elemOffs, typeof(Guid));
+            Guid guid = (Guid)Marshal.PtrToStructure(new IntPtr(buffer.ToInt64() + i*sizeGuid), typeof(Guid));
             identifiers.Add(guid);
-            elemOffs += Marshal.SizeOf(typeof(Guid));
         }
         AuditFree(buffer);
         return identifiers;
